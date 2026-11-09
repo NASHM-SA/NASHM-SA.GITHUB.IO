@@ -146,7 +146,6 @@ select,input{width:100%;padding:12px;border:1px solid #d8d4ca;border-radius:2px;
    <button class="submit" id="submit">تأكيد الطلب</button>
    <div class="status" id="status" role="status"></div>
    <p class="note">سيتم التواصل معك لتأكيد تفاصيل الطلب قبل الشحن.</p>
-   <p class="note" style="color:#9b4b35">ملاحظة: استقبال الطلبات غير مربوط حاليًا؛ لن يتم إرسال البيانات حتى إتمام الربط.</p>
   </div>
  </div>
 </section>
@@ -185,8 +184,8 @@ document.getElementById('submit').addEventListener('click', async function() {
     return;
   }
 
-  const digits = phone.replace(/[\\s()+-]/g, '');
-  if (!/^(05\\d{8}|5\\d{8}|9665\\d{8}|009665\\d{8})$/.test(digits)) {
+  const digits = phone.replace(/[\s()+-]/g, '');
+  if (!/^(05\d{8}|5\d{8}|9665\d{8}|009665\d{8})$/.test(digits)) {
     status.textContent = 'يرجى إدخال رقم هاتف سعودي صحيح.';
     return;
   }
