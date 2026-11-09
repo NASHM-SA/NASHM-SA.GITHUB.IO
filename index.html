@@ -154,17 +154,90 @@ select,input{width:100%;padding:12px;border:1px solid #d8d4ca;border-radius:2px;
 <footer class="footer">نَشْم • سميراميس النقشة الخاصة<br>قد تختلف درجات اللون قليلًا بحسب الشاشة والإضاءة.</footer>
 <div class="sticky"><a href="#order">اطلب سميراميس الآن</a></div>
 <script>
-const total=document.getElementById('total');
-function selectedPackage(){return document.querySelector('input[name="package"]:checked')?.value||'1'}
-function update(){const prices={1:188,2:275,3:329};total.textContent=prices[selectedPackage()]+' ريال'}
-document.querySelectorAll('input[name="package"]').forEach(option=>option.addEventListener('change',update));
-document.getElementById('submit').addEventListener('click',()=>{
- const name=document.getElementById('customer').value.trim();
- const phone=document.getElementById('phone').value.trim();
- const status=document.getElementById('status');
- status.style.display='block';
- if(!name||!phone){status.textContent='يرجى إدخال الاسم ورقم الهاتف.';return}
- status.textContent='الصفحة غير مربوطة حاليًا بنظام استقبال الطلبات؛ لم يتم إرسال بياناتك.';
+const ORDER_API_URL = 'https://script.google.com/macros/s/AKfycbxxBGHE4mZ5iDdplvvaFxVhrHoOMETyRoafgk8iG-DGx9vhY27JgFhc3VHFBO22hu4x0w/exec';
+const ORDER_SKU = 'NASHM-SAMIRAMIS';
+
+function selectedPackage() {
+  const selected = document.querySelector('input[name="package"]:checked');
+  return selected ? Number(selected.value) : 1;
+}
+
+document.querySelectorAll('input[name="package"]').forEach(function(option) {
+  option.addEventListener('change', function() {
+    document.querySelectorAll('.package-option').forEach(function(card) {
+      card.setAttribute('aria-checked', card.querySelector('input').checked ? 'true' : 'false');
+    });
+  });
+});
+
+document.getElementById('submit').addEventListener('click', async function() {
+  const button = this;
+  const name = document.getElementById('customer').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const status = document.getElementById('status');
+  const offerCode = selectedPackage();
+
+  status.style.display = 'block';
+  status.style.color = '#8a4b30';
+
+  if (!name || !phone) {
+    status.textContent = 'يرجى إدخال الاسم ورقم الهاتف.';
+    return;
+  }
+
+  const digits = phone.replace(/[\\s()+-]/g, '');
+  if (!/^(05\\d{8}|5\\d{8}|9665\\d{8}|009665\\d{8})$/.test(digits)) {
+    status.textContent = 'يرجى إدخال رقم هاتف سعودي صحيح.';
+    return;
+  }
+
+  if (button.disabled) return;
+  button.disabled = true;
+  button.textContent = 'جارٍ إرسال الطلب...';
+
+  const params = new URLSearchParams(window.location.search);
+  const transactionId = 'NASHM-' + Date.now() + '-' + Math.random().toString(36).slice(2, 9);
+  const payload = {
+    sku: ORDER_SKU,
+    productSku: ORDER_SKU,
+    orderSku: ORDER_SKU,
+    offerCode: offerCode,
+    transactionId: transactionId,
+    transaction_id: transactionId,
+    name: name,
+    phone: phone,
+    country: 'SA',
+    currency: 'SAR',
+    pageUrl: window.location.href,
+    source: 'NASHM Website',
+    utm: {
+      utm_source: params.get('utm_source') || '',
+      utm_medium: params.get('utm_medium') || '',
+      utm_campaign: params.get('utm_campaign') || '',
+      utm_term: params.get('utm_term') || '',
+      utm_content: params.get('utm_content') || '',
+      sc_click_id: params.get('ScCid') || params.get('sc_click_id') || params.get('snap_click_id') || ''
+    }
+  };
+
+  try {
+    // Apps Script لا يدعم CORS preflight؛ text/plain مع no-cors يسمح بإرسال POST دون preflight.
+    await fetch(ORDER_API_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+
+    status.style.color = '#28613b';
+    status.textContent = 'تم إرسال طلبك. سنتواصل معك هاتفيًا لتأكيد الطلب.';
+    button.textContent = 'تم إرسال الطلب';
+  } catch (error) {
+    status.style.color = '#8a4b30';
+    status.textContent = 'تعذر إرسال الطلب بسبب الاتصال. يرجى المحاولة مرة أخرى.';
+    button.disabled = false;
+    button.textContent = 'تأكيد الطلب';
+  }
 });
 </script>
 </body>
