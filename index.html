@@ -48,6 +48,15 @@ h1{font-size:clamp(29px,6vw,45px);line-height:1.4;margin:10px 0}
 .field{margin:13px 0}
 label{display:block;font-weight:bold;margin-bottom:6px}
 select,input{width:100%;padding:12px;border:1px solid #d8d4ca;border-radius:2px;background:white;font:inherit}
+.package-list{display:grid;gap:10px;margin:12px 0 18px}
+.package-option{display:flex;align-items:center;gap:12px;padding:14px;border:1.5px solid #dedbd2;border-radius:8px;background:#fff;cursor:pointer;transition:border-color .15s,background .15s}
+.package-option:has(input:checked){border-color:var(--green);background:#f3f6f2;box-shadow:0 0 0 1px var(--green) inset}
+.package-option input{width:19px;height:19px;flex:0 0 19px;accent-color:var(--green);margin:0}
+.package-info{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%}
+.package-info b{display:block;font-size:16px}
+.package-info small{display:block;color:var(--muted);font-size:12px}
+.package-price{font-size:19px;font-weight:bold;color:var(--green);white-space:nowrap}
+.package-tag{display:inline-block;margin-top:4px;padding:2px 8px;border-radius:20px;background:#eee6d7;color:#765c32;font-size:11px;font-weight:bold}
 .summary{display:flex;justify-content:space-between;align-items:center;background:var(--cream);padding:14px;margin:16px 0;border-radius:6px}.summary strong{color:var(--green)}
 .summary strong{font-size:24px}
 .note{font-size:12px;color:var(--muted)}
@@ -126,7 +135,11 @@ select,input{width:100%;padding:12px;border:1px solid #d8d4ca;border-radius:2px;
   <div class="heading"><div class="eyebrow">اطلب الآن</div><h2>قماش سميراميس النقشة الخاصة</h2><p>اختر العرض، ثم أدخل بياناتك لإتمام الطلب</p></div>
   <div class="order-card">
    <div class="checkout-step"><span>1</span><div><b>اختر العرض المناسب</b><small>اللون: أبيض</small></div></div>
-   <div class="field"><label for="qty">العروض المتاحة</label><select id="qty"><option value="1">قطعة واحدة — 188 ريال</option><option value="2">قطعتان — 275 ريال</option><option value="3">3 قطع — 329 ريال</option></select></div>
+   <div class="package-list" role="radiogroup" aria-label="اختر الباقة">
+    <label class="package-option"><input type="radio" name="package" value="1" checked><span class="package-info"><span><b>باقة قطعة واحدة</b><small>اختيار مناسب للتجربة</small></span><strong class="package-price">188 ريال</strong></span></label>
+    <label class="package-option"><input type="radio" name="package" value="2"><span class="package-info"><span><b>باقة قطعتين</b><small>قيمة أفضل عند شراء قطعتين</small><span class="package-tag">الأكثر طلبًا</span></span><strong class="package-price">275 ريال</strong></span></label>
+    <label class="package-option"><input type="radio" name="package" value="3"><span class="package-info"><span><b>باقة 3 قطع</b><small>أفضل قيمة للكمية</small></span><strong class="package-price">329 ريال</strong></span></label>
+   </div>
    <div class="summary"><span>الإجمالي شامل العرض</span><strong id="total">188 ريال</strong></div>
    <div class="checkout-step"><span>2</span><div><b>بيانات الطلب</b><small>أدخل الاسم ورقم الهاتف للتواصل معك</small></div></div>
    <div class="field"><label for="customer">الاسم الكامل</label><input id="customer" autocomplete="name" placeholder="اكتب اسمك الكامل"></div>
@@ -142,9 +155,10 @@ select,input{width:100%;padding:12px;border:1px solid #d8d4ca;border-radius:2px;
 <footer class="footer">نَشْم • سميراميس النقشة الخاصة<br>قد تختلف درجات اللون قليلًا بحسب الشاشة والإضاءة.</footer>
 <div class="sticky"><a href="#order">اطلب سميراميس الآن</a></div>
 <script>
-const qty=document.getElementById('qty'),total=document.getElementById('total');
-function update(){const prices={1:188,2:275,3:329};total.textContent=prices[qty.value]+' ريال'}
-qty.addEventListener('change',update);
+const total=document.getElementById('total');
+function selectedPackage(){return document.querySelector('input[name="package"]:checked')?.value||'1'}
+function update(){const prices={1:188,2:275,3:329};total.textContent=prices[selectedPackage()]+' ريال'}
+document.querySelectorAll('input[name="package"]').forEach(option=>option.addEventListener('change',update));
 document.getElementById('submit').addEventListener('click',()=>{
  const name=document.getElementById('customer').value.trim();
  const phone=document.getElementById('phone').value.trim();
