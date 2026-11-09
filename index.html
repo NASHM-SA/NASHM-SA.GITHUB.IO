@@ -61,7 +61,7 @@ select,input{width:100%;padding:12px;border:1px solid #d8d4ca;border-radius:2px;
 .summary strong{font-size:24px}
 .note{font-size:12px;color:var(--muted)}
 .submit{width:100%;padding:14px}
-.status{display:none;margin-top:12px;font-size:13px;color:#8a4b30}
+.status{display:none;margin-top:16px;padding:15px 14px;border-radius:9px;font-size:14px;line-height:1.8;color:#8a4b30;background:#fff5ef;border:1px solid #f0d3c5}.status.success{display:block!important;text-align:center;color:#205b39!important;background:#eff8f1;border:1px solid #cce6d2;padding:22px 16px}.status.success:before{content:'✓';display:grid;place-items:center;width:48px;height:48px;margin:0 auto 10px;border-radius:50%;background:#287447;color:#fff;font-size:28px;font-weight:bold}.status.success b{display:block;font-size:19px;margin-bottom:4px}.status.success small{display:block;color:#496b55;font-size:13px}#order{scroll-margin-top:12px}
 .footer{background:#121d18;color:#ddd;text-align:center;padding:22px 10px;font-size:12px}
 .sticky{display:none}
 @media(max-width:600px){
@@ -167,8 +167,19 @@ function trackStartCheckout() {
   startCheckoutTracked = true;
   if (typeof window.snaptr === 'function') snaptr('track', 'START_CHECKOUT');
 }
+function openCheckout(event) {
+  if (event) event.preventDefault();
+  trackStartCheckout();
+  const checkout = document.getElementById('order');
+  // الانتقال مباشرة إلى نموذج الطلب دون المرور بصور الصفحة.
+  checkout.scrollIntoView({ behavior: 'auto', block: 'start' });
+  // إعادة ضبط الموضع بعد لحظة لمنع تغيّر مكان النموذج بسبب تحميل الصور أعلى الصفحة.
+  window.setTimeout(function() {
+    checkout.scrollIntoView({ behavior: 'auto', block: 'start' });
+  }, 350);
+}
 document.querySelectorAll('a[href="#order"]').forEach(function(link) {
-  link.addEventListener('click', trackStartCheckout);
+  link.addEventListener('click', openCheckout);
 });
 document.querySelectorAll('input[name="package"], #customer, #phone').forEach(function(control) {
   control.addEventListener('focus', trackStartCheckout, { once: true });
@@ -256,9 +267,13 @@ document.getElementById('submit').addEventListener('click', async function() {
         transaction_id: transactionId
       });
     }
-    status.style.color = '#28613b';
-    status.textContent = 'تم إرسال طلبك. سنتواصل معك هاتفيًا لتأكيد الطلب.';
-    button.textContent = 'تم إرسال الطلب';
+    status.className = 'status success';
+    status.innerHTML = '<b>تم إرسال طلبك بنجاح</b><small>شكرًا لثقتك بنَشْم. استلمنا بيانات طلبك، وسنتواصل معك هاتفيًا لتأكيد التفاصيل قبل الشحن.</small>';
+    button.textContent = 'تم استلام الطلب';
+    button.disabled = true;
+    document.querySelectorAll('.checkout-step, .package-list, .field, .note').forEach(function(el) {
+      if (el.closest('.order-card')) el.style.display = 'none';
+    });
   } catch (error) {
     status.style.color = '#8a4b30';
     status.textContent = 'تعذر إرسال الطلب بسبب الاتصال. يرجى المحاولة مرة أخرى.';
