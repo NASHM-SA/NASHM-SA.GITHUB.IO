@@ -84,6 +84,11 @@ select,input{width:100%;padding:12px;border:1px solid #d8d4ca;border-radius:2px;
  .footer{padding-bottom:78px}
 }
 </style>
+<script>
+(function(e,t,n){if(e.snaptr)return;var a=e.snaptr=function(){a.handleRequest?a.handleRequest.apply(a,arguments):a.queue.push(arguments)};a.queue=[];var s='script';var r=t.createElement(s);r.async=!0;r.src=n;var u=t.getElementsByTagName(s)[0];u.parentNode.insertBefore(r,u);})(window,document,'https://sc-static.net/scevent.min.js');
+snaptr('init','233915bf-25f6-4119-9362-701fe3212185');
+snaptr('track','PAGE_VIEW');
+</script>
 </head>
 <body>
 <div class="top">نَشْم • اختيار أنيق يليق بك</div>
@@ -155,6 +160,20 @@ select,input{width:100%;padding:12px;border:1px solid #d8d4ca;border-radius:2px;
 <script>
 const ORDER_API_URL = 'https://script.google.com/macros/s/AKfycbxxBGHE4mZ5iDdplvvaFxVhrHoOMETyRoafgk8iG-DGx9vhY27JgFhc3VHFBO22hu4x0w/exec';
 const ORDER_SKU = 'NASHM-SAMIRAMIS';
+
+let startCheckoutTracked = false;
+function trackStartCheckout() {
+  if (startCheckoutTracked) return;
+  startCheckoutTracked = true;
+  if (typeof window.snaptr === 'function') snaptr('track', 'START_CHECKOUT');
+}
+document.querySelectorAll('a[href="#order"]').forEach(function(link) {
+  link.addEventListener('click', trackStartCheckout);
+});
+document.querySelectorAll('input[name="package"], #customer, #phone').forEach(function(control) {
+  control.addEventListener('focus', trackStartCheckout, { once: true });
+  control.addEventListener('change', trackStartCheckout, { once: true });
+});
 
 function selectedPackage() {
   const selected = document.querySelector('input[name="package"]:checked');
@@ -228,6 +247,15 @@ document.getElementById('submit').addEventListener('click', async function() {
       body: JSON.stringify(payload)
     });
 
+    // no-cors لا يكشف استجابة الخادم؛ يسجل الحدث بعد اكتمال إرسال الطلب من المتصفح.
+    if (typeof window.snaptr === 'function') {
+      const prices = {1: 188, 2: 275, 3: 329};
+      snaptr('track', 'PURCHASE', {
+        price: prices[offerCode],
+        currency: 'SAR',
+        transaction_id: transactionId
+      });
+    }
     status.style.color = '#28613b';
     status.textContent = 'تم إرسال طلبك. سنتواصل معك هاتفيًا لتأكيد الطلب.';
     button.textContent = 'تم إرسال الطلب';
